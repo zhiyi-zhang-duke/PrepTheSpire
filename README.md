@@ -6,12 +6,12 @@ This codebase uses gqlgen to create a graphql server that display card tiers for
 
 # Setup
 
-Clone the code base
-Download Go for your OS
-Create a mongodb database called SlayTheSpire
-Create a collection called CardsTierList
-Import the slay-the-spire.csv into the CardsTierList collection
-Follow the setup below in resources
+- Clone the code base
+- Download Go for your OS
+- Create a mongodb database called SlayTheSpire
+- Create a collection called CardsTierList
+- Import the slay-the-spire.csv into the CardsTierList collection
+- Follow the setup below in resources
 
 # Resources
 
