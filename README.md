@@ -1,4 +1,5 @@
 # PrepTheSpire
+
 ![study](hero_studying.jpg)
 
 A codebase that utilizes slay the spire tier scores for cards to help players slay the spire.
@@ -16,4 +17,6 @@ This codebase uses gqlgen to create a graphql server that display card tiers for
 # Resources
 
 I followed a tutorial here to get a simple setup:
+
 https://www.section.io/engineering-education/implement-graphql-api-using-golang-and-mongodb-database/
+https://reactnative.dev/docs/environment-setup
