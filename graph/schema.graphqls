@@ -1,0 +1,32 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type CardTier {
+  id: ID!
+  card: String!
+  class: String!
+  act1: Int!
+  act2: Int!
+  act3: Int!
+  upgradeBonus: Int!
+}
+
+input NewCardTier {
+  card: String!
+  class: String!
+  act1: Int!
+  act2: Int!
+  act3: Int!
+  upgradeBonus: Int!
+}
+
+type Mutation {
+  createNewCardTierScore(input: NewCardTier!): CardTier!
+}
+
+type Query {
+  cardTier(_id: String!): CardTier!
+  cardTiers: [CardTier!]!
+  cardTierByName(name: String!): CardTier!
+}
