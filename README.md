@@ -1,4 +1,5 @@
 # PrepTheSpire
+![study](hero_studying.jpg)
 
 A codebase that utilizes slay the spire tier scores for cards to help players slay the spire.
 This codebase uses gqlgen to create a graphql server that display card tiers for slay the spire. With time, I'm hoping I can create a "run helper" app that uses the info from this graphql server to create a full fledged mobile app that everyone can use to make informed decisions about slay the spire.
