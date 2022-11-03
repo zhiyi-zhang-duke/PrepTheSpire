@@ -18,5 +18,5 @@ This codebase uses gqlgen to create a graphql server that display card tiers for
 
 I followed a tutorial here to get a simple setup:
 
-https://www.section.io/engineering-education/implement-graphql-api-using-golang-and-mongodb-database/
-https://reactnative.dev/docs/environment-setup
+- https://www.section.io/engineering-education/implement-graphql-api-using-golang-and-mongodb-database/
+- https://reactnative.dev/docs/environment-setup
