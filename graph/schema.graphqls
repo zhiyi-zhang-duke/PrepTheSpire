@@ -9,7 +9,8 @@ type CardTier {
   act1: Int!
   act2: Int!
   act3: Int!
-  upgradeBonus: Int!
+  overall: Int!
+  upgrade: Int!
 }
 
 input NewCardTier {
@@ -18,7 +19,8 @@ input NewCardTier {
   act1: Int!
   act2: Int!
   act3: Int!
-  upgradeBonus: Int!
+  overall: Int!
+  upgrade: Int!
 }
 
 type Mutation {
@@ -29,4 +31,5 @@ type Query {
   cardTier(_id: String!): CardTier!
   cardTiers: [CardTier!]!
   cardTierByName(name: String!): CardTier!
+  cardTiersByClass(class: String!): [CardTier!]!
 }

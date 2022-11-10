@@ -4,6 +4,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -71,13 +72,36 @@ func (db *DB) FindCardTierScoreByName(cardName string) *model.CardTier {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	result := cardTiersColl.FindOne(ctx, bson.M{"Card": cardName})
+	fmt.Println(result)
 
 	var cardTier model.CardTier
 	result.Decode(&cardTier)
+	fmt.Println(cardTier)
 
 	return &cardTier
 }
 
-func (db *DB) FindCardTierScoreByClass(cardName string) []*model.CardTier {
-	return nil
+func (db *DB) CardTiersByClass(class string) []*model.CardTier {
+	// cardTiersByClass(class: "Ironclad"){
+	// 	id
+	// 	card
+	// 	overallScore
+	//   }
+
+	cardTiersColl := db.client.Database("SlayTheSpire").Collection("CardsTierList")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	opts := options.Find()
+	// cursor, err := cardTiersColl.Find(ctx, bson.D{{"class", class}}, opts)
+	cursor, err := cardTiersColl.Find(ctx, bson.D{bson.E{Key: "class", Value: class}}, opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var results []*model.CardTier
+	if err = cursor.All(ctx, &results); err != nil {
+		log.Fatal(err)
+	}
+
+	return results
 }

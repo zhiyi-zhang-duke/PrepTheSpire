@@ -31,6 +31,11 @@ func (r *queryResolver) CardTierByName(ctx context.Context, name string) (*model
 	return db.FindCardTierScoreByName(name), nil
 }
 
+// CardTiersByClass is the resolver for the cardTiersByClass field.
+func (r *queryResolver) CardTiersByClass(ctx context.Context, class string) ([]*model.CardTier, error) {
+	return db.CardTiersByClass(class), nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

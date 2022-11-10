@@ -45,13 +45,14 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CardTier struct {
-		Act1         func(childComplexity int) int
-		Act2         func(childComplexity int) int
-		Act3         func(childComplexity int) int
-		Card         func(childComplexity int) int
-		Class        func(childComplexity int) int
-		ID           func(childComplexity int) int
-		UpgradeBonus func(childComplexity int) int
+		Act1    func(childComplexity int) int
+		Act2    func(childComplexity int) int
+		Act3    func(childComplexity int) int
+		Card    func(childComplexity int) int
+		Class   func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Overall func(childComplexity int) int
+		Upgrade func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -59,9 +60,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		CardTier       func(childComplexity int, id string) int
-		CardTierByName func(childComplexity int, name string) int
-		CardTiers      func(childComplexity int) int
+		CardTier         func(childComplexity int, id string) int
+		CardTierByName   func(childComplexity int, name string) int
+		CardTiers        func(childComplexity int) int
+		CardTiersByClass func(childComplexity int, class string) int
 	}
 }
 
@@ -72,6 +74,7 @@ type QueryResolver interface {
 	CardTier(ctx context.Context, id string) (*model.CardTier, error)
 	CardTiers(ctx context.Context) ([]*model.CardTier, error)
 	CardTierByName(ctx context.Context, name string) (*model.CardTier, error)
+	CardTiersByClass(ctx context.Context, class string) ([]*model.CardTier, error)
 }
 
 type executableSchema struct {
@@ -131,12 +134,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CardTier.ID(childComplexity), true
 
-	case "CardTier.upgradeBonus":
-		if e.complexity.CardTier.UpgradeBonus == nil {
+	case "CardTier.overall":
+		if e.complexity.CardTier.Overall == nil {
 			break
 		}
 
-		return e.complexity.CardTier.UpgradeBonus(childComplexity), true
+		return e.complexity.CardTier.Overall(childComplexity), true
+
+	case "CardTier.upgrade":
+		if e.complexity.CardTier.Upgrade == nil {
+			break
+		}
+
+		return e.complexity.CardTier.Upgrade(childComplexity), true
 
 	case "Mutation.createNewCardTierScore":
 		if e.complexity.Mutation.CreateNewCardTierScore == nil {
@@ -180,6 +190,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.CardTiers(childComplexity), true
+
+	case "Query.cardTiersByClass":
+		if e.complexity.Query.CardTiersByClass == nil {
+			break
+		}
+
+		args, err := ec.field_Query_cardTiersByClass_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.CardTiersByClass(childComplexity, args["class"].(string)), true
 
 	}
 	return 0, false
@@ -261,7 +283,8 @@ type CardTier {
   act1: Int!
   act2: Int!
   act3: Int!
-  upgradeBonus: Int!
+  overall: Int!
+  upgrade: Int!
 }
 
 input NewCardTier {
@@ -270,7 +293,8 @@ input NewCardTier {
   act1: Int!
   act2: Int!
   act3: Int!
-  upgradeBonus: Int!
+  overall: Int!
+  upgrade: Int!
 }
 
 type Mutation {
@@ -281,6 +305,7 @@ type Query {
   cardTier(_id: String!): CardTier!
   cardTiers: [CardTier!]!
   cardTierByName(name: String!): CardTier!
+  cardTiersByClass(class: String!): [CardTier!]!
 }
 `, BuiltIn: false},
 }
@@ -347,6 +372,21 @@ func (ec *executionContext) field_Query_cardTier_args(ctx context.Context, rawAr
 		}
 	}
 	args["_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_cardTiersByClass_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["class"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("class"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["class"] = arg0
 	return args, nil
 }
 
@@ -652,8 +692,8 @@ func (ec *executionContext) fieldContext_CardTier_act3(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _CardTier_upgradeBonus(ctx context.Context, field graphql.CollectedField, obj *model.CardTier) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CardTier_upgradeBonus(ctx, field)
+func (ec *executionContext) _CardTier_overall(ctx context.Context, field graphql.CollectedField, obj *model.CardTier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CardTier_overall(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -666,7 +706,7 @@ func (ec *executionContext) _CardTier_upgradeBonus(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpgradeBonus, nil
+		return obj.Overall, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -683,7 +723,51 @@ func (ec *executionContext) _CardTier_upgradeBonus(ctx context.Context, field gr
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CardTier_upgradeBonus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CardTier_overall(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CardTier",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CardTier_upgrade(ctx context.Context, field graphql.CollectedField, obj *model.CardTier) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CardTier_upgrade(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Upgrade, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CardTier_upgrade(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CardTier",
 		Field:      field,
@@ -747,8 +831,10 @@ func (ec *executionContext) fieldContext_Mutation_createNewCardTierScore(ctx con
 				return ec.fieldContext_CardTier_act2(ctx, field)
 			case "act3":
 				return ec.fieldContext_CardTier_act3(ctx, field)
-			case "upgradeBonus":
-				return ec.fieldContext_CardTier_upgradeBonus(ctx, field)
+			case "overall":
+				return ec.fieldContext_CardTier_overall(ctx, field)
+			case "upgrade":
+				return ec.fieldContext_CardTier_upgrade(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CardTier", field.Name)
 		},
@@ -818,8 +904,10 @@ func (ec *executionContext) fieldContext_Query_cardTier(ctx context.Context, fie
 				return ec.fieldContext_CardTier_act2(ctx, field)
 			case "act3":
 				return ec.fieldContext_CardTier_act3(ctx, field)
-			case "upgradeBonus":
-				return ec.fieldContext_CardTier_upgradeBonus(ctx, field)
+			case "overall":
+				return ec.fieldContext_CardTier_overall(ctx, field)
+			case "upgrade":
+				return ec.fieldContext_CardTier_upgrade(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CardTier", field.Name)
 		},
@@ -889,8 +977,10 @@ func (ec *executionContext) fieldContext_Query_cardTiers(ctx context.Context, fi
 				return ec.fieldContext_CardTier_act2(ctx, field)
 			case "act3":
 				return ec.fieldContext_CardTier_act3(ctx, field)
-			case "upgradeBonus":
-				return ec.fieldContext_CardTier_upgradeBonus(ctx, field)
+			case "overall":
+				return ec.fieldContext_CardTier_overall(ctx, field)
+			case "upgrade":
+				return ec.fieldContext_CardTier_upgrade(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CardTier", field.Name)
 		},
@@ -949,8 +1039,10 @@ func (ec *executionContext) fieldContext_Query_cardTierByName(ctx context.Contex
 				return ec.fieldContext_CardTier_act2(ctx, field)
 			case "act3":
 				return ec.fieldContext_CardTier_act3(ctx, field)
-			case "upgradeBonus":
-				return ec.fieldContext_CardTier_upgradeBonus(ctx, field)
+			case "overall":
+				return ec.fieldContext_CardTier_overall(ctx, field)
+			case "upgrade":
+				return ec.fieldContext_CardTier_upgrade(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CardTier", field.Name)
 		},
@@ -963,6 +1055,79 @@ func (ec *executionContext) fieldContext_Query_cardTierByName(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_cardTierByName_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_cardTiersByClass(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cardTiersByClass(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CardTiersByClass(rctx, fc.Args["class"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CardTier)
+	fc.Result = res
+	return ec.marshalNCardTier2ᚕᚖexampleᚋgraphᚋmodelᚐCardTierᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_cardTiersByClass(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CardTier_id(ctx, field)
+			case "card":
+				return ec.fieldContext_CardTier_card(ctx, field)
+			case "class":
+				return ec.fieldContext_CardTier_class(ctx, field)
+			case "act1":
+				return ec.fieldContext_CardTier_act1(ctx, field)
+			case "act2":
+				return ec.fieldContext_CardTier_act2(ctx, field)
+			case "act3":
+				return ec.fieldContext_CardTier_act3(ctx, field)
+			case "overall":
+				return ec.fieldContext_CardTier_overall(ctx, field)
+			case "upgrade":
+				return ec.fieldContext_CardTier_upgrade(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CardTier", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_cardTiersByClass_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2878,7 +3043,7 @@ func (ec *executionContext) unmarshalInputNewCardTier(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"card", "class", "act1", "act2", "act3", "upgradeBonus"}
+	fieldsInOrder := [...]string{"card", "class", "act1", "act2", "act3", "overall", "upgrade"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2925,11 +3090,19 @@ func (ec *executionContext) unmarshalInputNewCardTier(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
-		case "upgradeBonus":
+		case "overall":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upgradeBonus"))
-			it.UpgradeBonus, err = ec.unmarshalNInt2int(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("overall"))
+			it.Overall, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "upgrade":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("upgrade"))
+			it.Upgrade, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2999,9 +3172,16 @@ func (ec *executionContext) _CardTier(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "upgradeBonus":
+		case "overall":
 
-			out.Values[i] = ec._CardTier_upgradeBonus(ctx, field, obj)
+			out.Values[i] = ec._CardTier_overall(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "upgrade":
+
+			out.Values[i] = ec._CardTier_upgrade(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -3131,6 +3311,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_cardTierByName(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "cardTiersByClass":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_cardTiersByClass(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

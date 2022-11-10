@@ -3,20 +3,22 @@
 package model
 
 type CardTier struct {
-	ID           string `json:"id"`
-	Card         string `json:"card"`
-	Class        string `json:"class"`
-	Act1         int    `json:"act1"`
-	Act2         int    `json:"act2"`
-	Act3         int    `json:"act3"`
-	UpgradeBonus int    `json:"upgradeBonus"`
+	ID      string `json:"id"`
+	Card    string `json:"card"`
+	Class   string `json:"class"`
+	Act1    int    `json:"act1"`
+	Act2    int    `json:"act2"`
+	Act3    int    `json:"act3"`
+	Overall int    `json:"overall"`
+	Upgrade int    `json:"upgrade"`
 }
 
 type NewCardTier struct {
-	Card         string `json:"card"`
-	Class        string `json:"class"`
-	Act1         int    `json:"act1"`
-	Act2         int    `json:"act2"`
-	Act3         int    `json:"act3"`
-	UpgradeBonus int    `json:"upgradeBonus"`
+	Card    string `json:"card"`
+	Class   string `json:"class"`
+	Act1    int    `json:"act1"`
+	Act2    int    `json:"act2"`
+	Act3    int    `json:"act3"`
+	Overall int    `json:"overall"`
+	Upgrade int    `json:"upgrade"`
 }
