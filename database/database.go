@@ -4,7 +4,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -72,11 +71,9 @@ func (db *DB) FindCardTierScoreByName(cardName string) *model.CardTier {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	result := cardTiersColl.FindOne(ctx, bson.M{"Card": cardName})
-	fmt.Println(result)
 
 	var cardTier model.CardTier
 	result.Decode(&cardTier)
-	fmt.Println(cardTier)
 
 	return &cardTier
 }
