@@ -7,7 +7,7 @@ This codebase uses gqlgen to create a graphql server that display card tiers for
 
 # To do list
 
-- Debug why the act1, act2, act3, overallScore, and upgradeBonus return 0...
+- Add rarity, deck goals to csv
 
 # Development flow for a new graphql route
 

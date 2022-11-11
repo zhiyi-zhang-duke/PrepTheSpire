@@ -19,6 +19,7 @@ func main() {
 	database.Connect("mongodb://localhost:27017/")
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		Debug:            true,
 	})

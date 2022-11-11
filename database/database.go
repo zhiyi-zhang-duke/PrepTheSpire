@@ -4,6 +4,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -90,6 +91,7 @@ func (db *DB) CardTiersByClass(class string) []*model.CardTier {
 	defer cancel()
 	opts := options.Find()
 	// cursor, err := cardTiersColl.Find(ctx, bson.D{{"class", class}}, opts)
+	fmt.Println(class)
 	cursor, err := cardTiersColl.Find(ctx, bson.D{bson.E{Key: "class", Value: class}}, opts)
 	if err != nil {
 		log.Fatal(err)
