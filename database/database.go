@@ -4,7 +4,6 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -90,17 +89,30 @@ func (db *DB) CardTiersByClass(class string) []*model.CardTier {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	opts := options.Find()
-	// cursor, err := cardTiersColl.Find(ctx, bson.D{{"class", class}}, opts)
-	fmt.Println(class)
-	cursor, err := cardTiersColl.Find(ctx, bson.D{bson.E{Key: "class", Value: class}}, opts)
+	cursor, err := cardTiersColl.Find(ctx, bson.D{{"Class", class}}, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var results []*model.CardTier
+	var results []bson.M
 	if err = cursor.All(ctx, &results); err != nil {
 		log.Fatal(err)
 	}
 
-	return results
+	var cardTiers []*model.CardTier
+	for _, result := range results {
+		cardTier := model.CardTier{
+			ID:      result["_id"].(primitive.ObjectID).Hex(),
+			Card:    result["Card"].(string),
+			Class:   result["Class"].(string),
+			Act1:    int(result["Act1"].(int32)),
+			Act2:    int(result["Act2"].(int32)),
+			Act3:    int(result["Act3"].(int32)),
+			Overall: int(result["Overall"].(int32)),
+			Upgrade: int(result["Upgrade"].(int32)),
+		}
+		cardTiers = append(cardTiers, &cardTier)
+	}
+
+	return cardTiers
 }
